@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApnaClipboard — Copy & Paste Anywhere</title>
+  <meta name="description" content="Instant copy & paste between devices without login. Send text snippets, links, or code across mobile and laptop seamlessly.">
+  <meta name="keywords" content="online clipboard, share text online, pastebin, share image online, device share, apna clipboard">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-secondary: #f1f5f9;
+      --bg-pill-wrap: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #5b52ff;
+      --accent-hover: #483fe8;
+      --accent-light: rgba(91, 82, 255, 0.12);
+      --border: #e2e8f0;
+      --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #090e1a;
+      --bg-card: #151c2c;
+      --bg-secondary: #101624;
+      --bg-pill-wrap: #131a29;
+      --text-main: #f8fafc;
+      --text-muted: #8b9bb4;
+      --accent: #5b52ff;
+      --accent-hover: #4b42f5;
+      --accent-light: rgba(139, 133, 255, 0.16);
+      --border: #253047;
+      --card-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.5);
+      --danger: #f87171;
+      --danger-hover: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: rgba(14, 21, 37, 0.92);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+
+    :root:not([data-theme="dark"]) header {
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.72rem;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #635bff, #4940e6);
+      color: white;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(91, 82, 255, 0.42);
+      flex-shrink: 0;
+    }
+
+    .badge {
+      background: #e8edff;
+      color: #4338ca;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+    }
+
+    [data-theme="dark"] .badge {
+      background: #eef2ff;
+      color: #3730a3;
+    }
+
+    .sync-pill {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.16);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .sync-pill.live {
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-icon {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: #fbbf24;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.05rem;
+    }
+
+    .btn-icon:hover {
+      border-color: var(--accent);
+    }
+
+    .btn-retrieve-top {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid var(--border);
+      padding: 0.55rem 1.1rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn-retrieve-top:hover {
+      background: #f1f5f9;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      max-width: 720px;
+      margin: 2.2rem auto 1.4rem;
+      padding: 0 1.25rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.6vw, 2.65rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.65rem;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      line-height: 1.55;
+    }
+
+    /* Mode Switcher Pill (Send Content / Retrieve Content) */
+    .mode-switcher-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.75rem;
+      padding: 0 1rem;
+    }
+
+    .mode-switcher {
+      background: var(--bg-pill-wrap);
+      border: 1px solid var(--border);
+      padding: 0.3rem;
+      border-radius: 12px;
+      display: inline-flex;
+      gap: 0.25rem;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.55rem 1.2rem;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .mode-btn.active {
+      background: #253047;
+      color: #ffffff;
+      border-color: #364566;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    :root:not([data-theme="dark"]) .mode-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      flex: 1;
+    }
+
+    .content-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: var(--card-shadow);
+    }
+
+    /* 3 Tabs Grid */
+    .tabs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.6rem;
+    }
+
+    @media (max-width: 640px) {
+      .tabs-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tab-card {
+      background: var(--bg-secondary);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.15rem;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .tab-card:hover {
+      border-color: #475569;
+    }
+
+    .tab-card.active {
+      background: #2d3754;
+      border-color: #8b85ff;
+      box-shadow: 0 0 0 1px rgba(139, 133, 255, 0.35);
+    }
+
+    :root:not([data-theme="dark"]) .tab-card.active {
+      background: #eef2ff;
+      border-color: var(--accent);
+    }
+
+    .tab-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .tab-card:nth-child(1) .tab-icon { background: rgba(99, 102, 241, 0.22); }
+    .tab-card:nth-child(2) .tab-icon { background: rgba(16, 185, 129, 0.2); }
+    .tab-card:nth-child(3) .tab-icon { background: rgba(245, 158, 11, 0.2); }
+
+    .tab-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-main);
+    }
+
+    .tab-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Section Header Row */
+    .section-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.7rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .text-counter {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Textarea */
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      color: var(--text-main);
+      font-size: 0.96rem;
+      outline: none;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    textarea:focus {
+      border-color: #7c75ff;
+      box-shadow: 0 0 0 3px rgba(124, 117, 255, 0.18);
+    }
+
+    textarea::placeholder {
+      color: #64748b;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 2.2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-secondary);
+      position: relative;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .drop-zone:hover {
+      border-color: #7c75ff;
+    }
+
+    .drop-cta-pill {
+      margin-top: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.5rem 1.05rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(99, 91, 255, 0.22), rgba(78, 70, 229, 0.16));
+      border: 1px solid rgba(139, 133, 255, 0.45);
+      color: var(--text-main);
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(91, 82, 255, 0.18);
+    }
+
+    .drop-zone:hover .drop-cta-pill {
+      background: linear-gradient(135deg, #635bff, #4e46e5);
+      color: #ffffff;
+      border-color: transparent;
+      transform: translateY(-1px);
+    }
+
+    .preview-container {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 270px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      object-fit: contain;
+      cursor: pointer;
+    }
+
+    .btn-cross {
+      position: absolute;
+      top: -11px;
+      right: -11px;
+      background: var(--danger);
+      color: #ffffff;
+      border: 2px solid var(--bg-card);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.45);
+      z-index: 10;
+    }
+
+    .btn-cross:hover {
+      background: var(--danger-hover);
+      transform: scale(1.08);
+    }
+
+    .file-preview-card {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.15rem 2.4rem 1.15rem 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.95rem;
+      width: 100%;
+      max-width: 400px;
+      cursor: pointer;
+    }
+
+    .file-icon-box {
+      width: 44px;
+      height: 44px;
+      background: rgba(245, 158, 11, 0.16);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .file-name {
+      font-weight: 700;
+      font-size: 0.92rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .hint-text {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+    }
+
+    /* Action Bar */
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.35rem;
+      padding-top: 1.15rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.14);
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .left-actions {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.68rem 1.15rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-ghost-action {
+      background: #1e2638;
+      color: #cbd5e1;
+      border-color: #2b364d;
+    }
+
+    :root:not([data-theme="dark"]) .btn-ghost-action {
+      background: #f1f5f9;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+
+    .btn-ghost-action:hover {
+      border-color: #64748b;
+      color: var(--text-main);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #635bff, #4e46e5);
+      color: #ffffff;
+      padding: 0.72rem 1.35rem;
+      box-shadow: 0 6px 18px rgba(91, 82, 255, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #554cf7, #4338ca);
+    }
+
+    /* Retrieve Inline Panel */
+    .retrieve-panel {
+      text-align: center;
+      padding: 1rem 0.5rem;
+    }
+
+    .code-input {
+      width: 100%;
+      max-width: 320px;
+      padding: 0.9rem 1rem;
+      font-size: 1.45rem;
+      text-align: center;
+      letter-spacing: 6px;
+      font-weight: 800;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-main);
+      outline: none;
+      margin: 1rem auto;
+      display: block;
+    }
+
+    .code-input:focus {
+      border-color: #7c75ff;
+    }
+
+    .retrieved-output {
+      margin-top: 1.25rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.15rem;
+      text-align: left;
+      display: none;
+    }
+
+    /* Result Box */
+    .result-box {
+      margin-top: 1.35rem;
+      background: var(--accent-light);
+      border: 1px dashed #7c75ff;
+      border-radius: 14px;
+      padding: 1.15rem;
+      text-align: center;
+      display: none;
+    }
+
+    .result-code {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 5px;
+      color: #8b85ff;
+      margin: 0.35rem 0;
+    }
+
+    :root:not([data-theme="dark"]) .result-code {
+      color: var(--accent);
+    }
+
+    /* Recent Local Clips Card */
+    .recent-clips-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.35rem 1.75rem;
+      margin-top: 1.35rem;
+      box-shadow: var(--card-shadow);
+    }
+
+    .recent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .recent-title {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .clear-history-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .clear-history-btn:hover {
+      color: var(--text-main);
+      text-decoration: underline;
+    }
+
+    .recent-empty {
+      text-align: center;
+      padding: 1.5rem 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      font-style: italic;
+    }
+
+    .clip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .clip-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .clip-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      overflow: hidden;
+    }
+
+    .clip-badge {
+      background: rgba(124, 117, 255, 0.2);
+      color: #a5a0ff;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 8px;
+      letter-spacing: 1px;
+    }
+
+    .clip-preview-text {
+      font-size: 0.86rem;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 420px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.75rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-top: 1.5rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="#" class="brand">
+      <div class="brand-icon" aria-hidden="true">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5C15 6.10457 14.1046 7 13 7H11C9.89543 7 9 6.10457 9 5Z" fill="#FBBF24" stroke="white" stroke-width="1.6"/>
+          <path d="M8.5 11.5H15.5M8.5 15.5H13" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span>ApnaClipboard</span>
+      <span class="badge">100% Free</span>
+      <span class="sync-pill" id="syncStatusBadge">Local Mode</span>
+    </a>
+    <div class="nav-actions">
+      <button class="btn-icon" id="themeToggle" title="Toggle Light/Dark Mode">☀️</button>
+      <button class="btn-retrieve-top" id="topRetrieveBtn">📥 Retrieve Code</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>ApnaClipboard — Copy &amp; Paste Anywhere</h1>
+    <p>Instant copy &amp; paste between devices without login. Send text snippets, links, or code across mobile and laptop seamlessly.</p>
+  </section>
+
+  <div class="mode-switcher-wrap">
+    <div class="mode-switcher">
+      <button class="mode-btn active" id="modeSendBtn" type="button">✈️ Send Content</button>
+      <button class="mode-btn" id="modeRetrieveBtn" type="button">🔑 Retrieve Content</button>
+    </div>
+  </div>
+
+  <main>
+    <!-- SEND PANEL -->
+    <div class="content-box" id="sendPanel">
+      <div class="tabs-grid">
+        <div class="tab-card active" data-tab="text">
+          <div class="tab-icon">✏️</div>
+          <div class="tab-title">Text</div>
+          <div class="tab-desc">Send any text snippet</div>
+        </div>
+        <div class="tab-card" data-tab="images">
+          <div class="tab-icon">📷</div>
+          <div class="tab-title">Images</div>
+          <div class="tab-desc">Share screenshots &amp; photos</div>
+        </div>
+        <div class="tab-card" data-tab="files">
+          <div class="tab-icon">📦</div>
+          <div class="tab-title">Files</div>
+          <div class="tab-desc">Transfer small files fast</div>
+        </div>
+      </div>
+
+      <!-- TEXT SECTION -->
+      <div id="textSection" class="tab-content">
+        <div class="section-header-row">
+          <div class="section-title">Your Text Snippet / Content</div>
+          <div class="text-counter"><span id="charCount">0</span> characters | <span id="wordCount">0</span> words</div>
+        </div>
+        <textarea id="textContent" placeholder="Paste or type your text here... (e.g., links, phone numbers, notes, codes)"></textarea>
+
+        <div class="actions-bar">
+          <div class="left-actions">
+            <button class="btn btn-ghost-action" id="clearTextBtn" type="button">🗑️ Clear</button>
+            <button class="btn btn-ghost-action" id="pasteDeviceBtn" type="button">📋 Paste from Device</button>
+          </div>
+          <button class="btn btn-primary" id="sendTextBtn" type="button">🔗 Generate Share Code</button>
+        </div>
+      </div>
+
+      <!-- IMAGES SECTION -->
+      <div id="imagesSection" class="tab-content hidden">
+        <div class="section-header-row">
+          <div class="section-title">Upload Screenshot or Photo</div>
+        </div>
+        <div class="drop-zone" id="imgDropZone">
+          <div id="imgPrompt">
+            <div style="font-size: 2.3rem; margin-bottom: 0.45rem;">📸</div>
+            <div style="font-weight: 700; margin-bottom: 0.25rem;">Click or Drag &amp; Drop Image Here</div>
+            <div style="font-size: 0.84rem; color: var(--text-muted);">Supports PNG, JPG, WEBP, GIF (Keep small for cross-device sync)</div>
+            <div class="drop-cta-pill">🖼️ Tap to Choose Photo</div>
+          </div>
+          <div id="imgPreviewWrapper" class="preview-container hidden">
+            <button class="btn-cross" id="removeImgCross" type="button" title="Remove Image">✕</button>
+            <img id="imgPreview" class="preview-img" alt="Preview" title="Double-tap or double-click to open full size">
+            <div class="hint-text">💡 Double-tap/click image to open full size</div>
+          </div>
+          <input type="file" id="imgInput" accept="image/*" class="hidden">
+        </div>
+
+        <div class="actions-bar">
+          <div class="left-actions">
+            <button class="btn btn-ghost-action" id="clearImgBtn" type="button">🗑️ Clear</button>
+          </div>
+          <button class="btn btn-primary" id="sendImgBtn" type="button">🔗 Generate Share Code</button>
+        </div>
+      </div>
+
+      <!-- FILES SECTION -->
+      <div id="filesSection" class="tab-content hidden">
+        <div class="section-header-row">
+          <div class="section-title">Upload File (PDF, DOCX, ZIP, etc.)</div>
+        </div>
+        <div class="drop-zone" id="fileDropZone">
+          <div id="filePrompt">
+            <div style="font-size: 2.3rem; margin-bottom: 0.45rem;">📁</div>
+            <div style="font-weight: 700; margin-bottom: 0.25rem;">Click or Drag &amp; Drop File Here</div>
+            <div style="font-size: 0.84rem; color: var(--text-muted);">Any small document or file (Under ~700KB for Realtime DB sync)</div>
+            <div class="drop-cta-pill">📂 Tap to Browse File</div>
+          </div>
+          <div id="filePreviewWrapper" class="file-preview-card hidden" title="Double-tap or double-click to download file">
+            <button class="btn-cross" id="removeFileCross" type="button" title="Remove File">✕</button>
+            <div class="file-icon-box">📄</div>
+            <div class="file-info">
+              <div class="file-name" id="fileName">document.pdf</div>
+              <div class="file-size" id="fileSize">260.5 KB</div>
+            </div>
+          </div>
+          <input type="file" id="fileInput" class="hidden">
+        </div>
+
+        <div class="actions-bar">
+          <div class="left-actions">
+            <button class="btn btn-ghost-action" id="clearFileBtn" type="button">🗑️ Clear</button>
+          </div>
+          <button class="btn btn-primary" id="sendFileBtn" type="button">🔗 Generate Share Code</button>
+        </div>
+      </div>
+
+      <!-- GENERATED CODE BOX -->
+      <div class="result-box" id="resultBox">
+        <div style="font-size: 0.88rem; color: var(--text-muted); font-weight: 600;">Your 6-Digit Share Code</div>
+        <div class="result-code" id="generatedCode">------</div>
+        <div style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.75rem;">Share this code with your friends — anyone with the website link can retrieve it using this 6-digit code.</div>
+        <button class="btn btn-ghost-action" id="copyCodeBtn" type="button">📋 Copy Code</button>
+      </div>
+    </div>
+
+    <!-- RETRIEVE PANEL -->
+    <div class="content-box hidden" id="retrievePanel">
+      <div class="retrieve-panel">
+        <div style="font-size: 1.2rem; font-weight: 800;">Retrieve Shared Content</div>
+        <div style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.25rem;">Enter the 6-digit code shared by your friend</div>
+        <input type="text" class="code-input" id="retrieveCodeInput" placeholder="000000" maxlength="6" inputmode="numeric">
+        <button class="btn btn-primary" id="submitRetrieveBtn" type="button">📥 Retrieve Content</button>
+
+        <div class="retrieved-output" id="retrievedOutput">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+            <strong id="retrievedTitle">Clip Details</strong>
+            <button class="btn btn-ghost-action" id="copyRetrievedBtn" type="button" style="padding:0.4rem 0.8rem; font-size:0.8rem;">📋 Copy</button>
+          </div>
+          <div id="retrievedBody" style="word-break:break-word; font-size:0.92rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT LOCAL CLIPS -->
+    <section class="recent-clips-card">
+      <div class="recent-header">
+        <div class="recent-title">
+          <span style="color:#8b85ff;">🕒</span>
+          <span>Recent Local Clips</span>
+        </div>
+        <button class="clear-history-btn" id="clearHistoryBtn" type="button">Clear History</button>
+      </div>
+      <div id="recentClipsContainer">
+        <div class="recent-empty">No recent clips stored in this browser session.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 ApnaClipboard — Free Device-to-Device Sharing Tool</p>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+
+    // =========================================================================
+    // STEP A: Paste your Firebase Realtime Database config below to enable
+    // cross-device sync for all friends who open your hosted link.
+    // Leave apiKey as "YOUR_API_KEY" to run in Local Browser Mode.
+    // =========================================================================
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyB1zZo805W8hyG6EJmDuyZaNwKvkI4twx0",
+      authDomain: "apna-clipboard.firebaseapp.com",
+      databaseURL: "https://apna-clipboard-default-rtdb.firebaseio.com",
+      projectId: "apna-clipboard",
+      storageBucket: "apna-clipboard.firebasestorage.app",
+      messagingSenderId: "42971152536",
+      appId: "1:42971152536:web:3dbc0c280d2bc6c577d0ed",
+      measurementId: "G-682VZCX01E"
+    };
+
+    const isFirebaseConfigured =
+      FIREBASE_CONFIG.apiKey &&
+      FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY" &&
+      FIREBASE_CONFIG.databaseURL &&
+      !FIREBASE_CONFIG.databaseURL.includes("YOUR_PROJECT");
+
+    let db = null;
+    const syncStatusBadge = document.getElementById("syncStatusBadge");
+
+    if (isFirebaseConfigured) {
+      try {
+        const app = initializeApp(FIREBASE_CONFIG);
+        db = getDatabase(app);
+        syncStatusBadge.textContent = "Cloud Sync Active";
+        syncStatusBadge.classList.add("live");
+      } catch (e) {
+        console.error("Firebase init failed:", e);
+        syncStatusBadge.textContent = "Local Fallback";
+      }
+    } else {
+      syncStatusBadge.textContent = "Local Mode (Add Firebase Key)";
+    }
+
+    let currentTab = 'text';
+    let selectedImageFile = null;
+    let selectedDocumentFile = null;
+    let imageObjectUrl = null;
+    let fileObjectUrl = null;
+    const localClips = [];
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    function updateThemeIcon() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      themeToggle.textContent = isDark ? '☀️' : '🌙';
+    }
+    updateThemeIcon();
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      updateThemeIcon();
+    });
+
+    // Mode switcher (Send Content / Retrieve Content)
+    const modeSendBtn = document.getElementById('modeSendBtn');
+    const modeRetrieveBtn = document.getElementById('modeRetrieveBtn');
+    const topRetrieveBtn = document.getElementById('topRetrieveBtn');
+    const sendPanel = document.getElementById('sendPanel');
+    const retrievePanel = document.getElementById('retrievePanel');
+
+    function setMode(mode) {
+      if (mode === 'send') {
+        modeSendBtn.classList.add('active');
+        modeRetrieveBtn.classList.remove('active');
+        sendPanel.classList.remove('hidden');
+        retrievePanel.classList.add('hidden');
+      } else {
+        modeRetrieveBtn.classList.add('active');
+        modeSendBtn.classList.remove('active');
+        retrievePanel.classList.remove('hidden');
+        sendPanel.classList.add('hidden');
+        document.getElementById('retrieveCodeInput').focus();
+      }
+    }
+
+    modeSendBtn.addEventListener('click', () => setMode('send'));
+    modeRetrieveBtn.addEventListener('click', () => setMode('retrieve'));
+    topRetrieveBtn.addEventListener('click', () => setMode('retrieve'));
+
+    // Tab cards
+    document.querySelectorAll('.tab-card').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab-card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
+        tab.classList.add('active');
+        currentTab = tab.dataset.tab;
+        document.getElementById(currentTab + 'Section').classList.remove('hidden');
+        document.getElementById('resultBox').style.display = 'none';
+      });
+    });
+
+    // Text tab
+    const textContent = document.getElementById('textContent');
+    const charCount = document.getElementById('charCount');
+    const wordCount = document.getElementById('wordCount');
+    const clearTextBtn = document.getElementById('clearTextBtn');
+    const pasteDeviceBtn = document.getElementById('pasteDeviceBtn');
+
+    textContent.addEventListener('input', () => {
+      const val = textContent.value;
+      charCount.textContent = val.length;
+      wordCount.textContent = val.trim() ? val.trim().split(/\s+/).length : 0;
+    });
+
+    clearTextBtn.addEventListener('click', () => {
+      textContent.value = '';
+      charCount.textContent = '0';
+      wordCount.textContent = '0';
+      document.getElementById('resultBox').style.display = 'none';
+    });
+
+    pasteDeviceBtn.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        textContent.value = text;
+        textContent.dispatchEvent(new Event('input'));
+      } catch (err) {
+        alert('Clipboard permission denied or not supported by browser.');
+      }
+    });
+
+    // Image tab
+    const imgDropZone = document.getElementById('imgDropZone');
+    const imgInput = document.getElementById('imgInput');
+    const imgPrompt = document.getElementById('imgPrompt');
+    const imgPreviewWrapper = document.getElementById('imgPreviewWrapper');
+    const imgPreview = document.getElementById('imgPreview');
+    const removeImgCross = document.getElementById('removeImgCross');
+    const clearImgBtn = document.getElementById('clearImgBtn');
+
+    imgDropZone.addEventListener('click', (e) => {
+      if (e.target.id === 'removeImgCross' || e.target.id === 'imgPreview') return;
+      imgInput.click();
+    });
+
+    imgDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imgDropZone.style.borderColor = '#7c75ff';
+    });
+
+    imgDropZone.addEventListener('dragleave', () => {
+      imgDropZone.style.borderColor = '';
+    });
+
+    imgDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imgDropZone.style.borderColor = '';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleImageSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    imgInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleImageSelect(e.target.files[0]);
+      }
+    });
+
+    function handleImageSelect(file) {
+      selectedImageFile = file;
+      if (imageObjectUrl) URL.revokeObjectURL(imageObjectUrl);
+      imageObjectUrl = URL.createObjectURL(file);
+      imgPreview.src = imageObjectUrl;
+      imgPrompt.classList.add('hidden');
+      imgPreviewWrapper.classList.remove('hidden');
+    }
+
+    imgPreview.addEventListener('dblclick', () => {
+      if (imageObjectUrl) {
+        window.open(imageObjectUrl, '_blank');
+      }
+    });
+
+    function resetImage() {
+      selectedImageFile = null;
+      if (imageObjectUrl) {
+        URL.revokeObjectURL(imageObjectUrl);
+        imageObjectUrl = null;
+      }
+      imgInput.value = '';
+      imgPreview.src = '';
+      imgPreviewWrapper.classList.add('hidden');
+      imgPrompt.classList.remove('hidden');
+      document.getElementById('resultBox').style.display = 'none';
+    }
+
+    removeImgCross.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetImage();
+    });
+    clearImgBtn.addEventListener('click', resetImage);
+
+    // File tab
+    const fileDropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInput');
+    const filePrompt = document.getElementById('filePrompt');
+    const filePreviewWrapper = document.getElementById('filePreviewWrapper');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const removeFileCross = document.getElementById('removeFileCross');
+    const clearFileBtn = document.getElementById('clearFileBtn');
+
+    fileDropZone.addEventListener('click', (e) => {
+      if (e.target.id === 'removeFileCross') return;
+      fileInput.click();
+    });
+
+    fileDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileDropZone.style.borderColor = '#7c75ff';
+    });
+
+    fileDropZone.addEventListener('dragleave', () => {
+      fileDropZone.style.borderColor = '';
+    });
+
+    fileDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileDropZone.style.borderColor = '';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      selectedDocumentFile = file;
+      if (fileObjectUrl) URL.revokeObjectURL(fileObjectUrl);
+      fileObjectUrl = URL.createObjectURL(file);
+      fileName.textContent = file.name;
+      fileSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+      filePrompt.classList.add('hidden');
+      filePreviewWrapper.classList.remove('hidden');
+    }
+
+    filePreviewWrapper.addEventListener('dblclick', () => {
+      if (fileObjectUrl) {
+        const a = document.createElement('a');
+        a.href = fileObjectUrl;
+        a.download = selectedDocumentFile ? selectedDocumentFile.name : 'file';
+        a.click();
+      }
+    });
+
+    function resetFile() {
+      selectedDocumentFile = null;
+      if (fileObjectUrl) {
+        URL.revokeObjectURL(fileObjectUrl);
+        fileObjectUrl = null;
+      }
+      fileInput.value = '';
+      filePreviewWrapper.classList.add('hidden');
+      filePrompt.classList.remove('hidden');
+      document.getElementById('resultBox').style.display = 'none';
+    }
+
+    removeFileCross.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetFile();
+    });
+    clearFileBtn.addEventListener('click', resetFile);
+
+    // File -> DataURL helper for Firebase Realtime DB sync
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Recent Clips Rendering
+    const recentClipsContainer = document.getElementById('recentClipsContainer');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+    function renderRecentClips() {
+      if (localClips.length === 0) {
+        recentClipsContainer.innerHTML = '<div class="recent-empty">No recent clips stored in this browser session.</div>';
+        return;
+      }
+
+      const list = document.createElement('div');
+      list.className = 'clip-list';
+
+      localClips.forEach(clip => {
+        const item = document.createElement('div');
+        item.className = 'clip-item';
+
+        const meta = document.createElement('div');
+        meta.className = 'clip-meta';
+
+        const badge = document.createElement('span');
+        badge.className = 'clip-badge';
+        badge.textContent = clip.code;
+
+        const label = document.createElement('span');
+        label.className = 'clip-preview-text';
+        label.textContent = clip.summary;
+
+        meta.appendChild(badge);
+        meta.appendChild(label);
+
+        const useBtn = document.createElement('button');
+        useBtn.className = 'btn btn-ghost-action';
+        useBtn.type = 'button';
+        useBtn.style.padding = '0.38rem 0.75rem';
+        useBtn.style.fontSize = '0.78rem';
+        useBtn.textContent = 'Open';
+        useBtn.addEventListener('click', () => {
+          document.getElementById('retrieveCodeInput').value = clip.code;
+          setMode('retrieve');
+          showRetrievedClip(clip.code);
+        });
+
+        item.appendChild(meta);
+        item.appendChild(useBtn);
+        list.appendChild(item);
+      });
+
+      recentClipsContainer.innerHTML = '';
+      recentClipsContainer.appendChild(list);
+    }
+
+    clearHistoryBtn.addEventListener('click', () => {
+      localClips.length = 0;
+      renderRecentClips();
+    });
+
+    // Generate & Sync Share Code
+    async function createShareEntry(type, summary, payload) {
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      const record = {
+        code,
+        type,
+        summary,
+        textValue: payload.textValue || '',
+        dataUrl: payload.dataUrl || '',
+        downloadName: payload.downloadName || '',
+        createdAt: Date.now()
+      };
+
+      localClips.unshift(record);
+      renderRecentClips();
+
+      if (db) {
+        try {
+          await set(ref(db, 'clips/' + code), record);
+        } catch (err) {
+          console.error("Cloud save error:", err);
+          alert('Saved locally, but cloud sync failed. Check Firebase Realtime Database rules or file size.');
+        }
+      }
+
+      document.getElementById('generatedCode').textContent = code;
+      document.getElementById('resultBox').style.display = 'block';
+    }
+
+    document.getElementById('sendTextBtn').addEventListener('click', async () => {
+      const val = textContent.value.trim();
+      if (!val) return alert('Please enter some text to share!');
+      await createShareEntry('text', 'Text: ' + val, { textValue: val });
+    });
+
+    document.getElementById('sendImgBtn').addEventListener('click', async () => {
+      if (!selectedImageFile) return alert('Please select an image to upload!');
+      if (db && selectedImageFile.size > 900 * 1024) {
+        return alert('For cross-device cloud sync, please choose an image under 900 KB.');
+      }
+      const dataUrl = await readFileAsDataUrl(selectedImageFile);
+      await createShareEntry('image', 'Image: ' + selectedImageFile.name, {
+        dataUrl,
+        downloadName: selectedImageFile.name
+      });
+    });
+
+    document.getElementById('sendFileBtn').addEventListener('click', async () => {
+      if (!selectedDocumentFile) return alert('Please select a file to upload!');
+      if (db && selectedDocumentFile.size > 700 * 1024) {
+        return alert('For cross-device cloud sync, please choose a file under 700 KB.');
+      }
+      const dataUrl = await readFileAsDataUrl(selectedDocumentFile);
+      await createShareEntry('file', 'File: ' + selectedDocumentFile.name, {
+        dataUrl,
+        downloadName: selectedDocumentFile.name
+      });
+    });
+
+    document.getElementById('copyCodeBtn').addEventListener('click', () => {
+      const code = document.getElementById('generatedCode').textContent;
+      navigator.clipboard.writeText(code);
+      alert('Code copied: ' + code);
+    });
+
+    // Retrieve Logic (Firebase first, then local session fallback)
+    const retrievedOutput = document.getElementById('retrievedOutput');
+    const retrievedTitle = document.getElementById('retrievedTitle');
+    const retrievedBody = document.getElementById('retrievedBody');
+    const copyRetrievedBtn = document.getElementById('copyRetrievedBtn');
+    let latestRetrievedText = '';
+
+    function renderClipInRetrieveBox(found, code) {
+      retrievedOutput.style.display = 'block';
+      if (!found) {
+        retrievedTitle.textContent = 'Code: ' + code;
+        retrievedBody.textContent = db
+          ? 'No clip found for code ' + code + '. Check the 6-digit code and try again.'
+          : 'No clip found in this browser session for code ' + code + '. Add your Firebase config in index.html so friends on other devices can retrieve codes.';
+        latestRetrievedText = '';
+        return;
+      }
+
+      retrievedTitle.textContent = 'Code ' + found.code + ' (' + String(found.type || 'text').toUpperCase() + ')';
+      if (found.type === 'text') {
+        latestRetrievedText = found.textValue || '';
+        retrievedBody.textContent = found.textValue || '';
+      } else if (found.type === 'image') {
+        latestRetrievedText = found.downloadName || '';
+        const src = found.dataUrl || found.urlValue || '';
+        retrievedBody.innerHTML = `<img src="${src}" style="max-width:100%; max-height:260px; border-radius:10px;" alt="${found.downloadName || 'Shared image'}">`;
+      } else {
+        latestRetrievedText = found.downloadName || '';
+        const href = found.dataUrl || found.urlValue || '';
+        const name = found.downloadName || 'shared-file';
+        retrievedBody.innerHTML = `<a href="${href}" download="${name}" style="color:#8b85ff; font-weight:700;">⬇️ Download ${name}</a>`;
+      }
+    }
+
+    async function showRetrievedClip(code) {
+      const cleanCode = code.trim();
+      if (db) {
+        try {
+          const snap = await get(child(ref(db), 'clips/' + cleanCode));
+          if (snap.exists()) {
+            renderClipInRetrieveBox(snap.val(), cleanCode);
+            return;
+          }
+        } catch (err) {
+          console.error("Cloud retrieve error:", err);
+        }
+      }
+      const localMatch = localClips.find(c => c.code === cleanCode);
+      renderClipInRetrieveBox(localMatch, cleanCode);
+    }
+
+    document.getElementById('submitRetrieveBtn').addEventListener('click', () => {
+      const val = document.getElementById('retrieveCodeInput').value.trim();
+      if (val.length !== 6) {
+        return alert('Please enter a valid 6-digit code.');
+      }
+      showRetrievedClip(val);
+    });
+
+    copyRetrievedBtn.addEventListener('click', () => {
+      if (!latestRetrievedText) return alert('Nothing to copy.');
+      navigator.clipboard.writeText(latestRetrievedText);
+      alert('Copied to clipboard!');
+    });
+  </script>
+</body>
+</html>
